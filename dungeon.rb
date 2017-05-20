@@ -1,17 +1,19 @@
 class Dungeon
-  attr_accessor :player
+  attr_accessor :player, :budget, :purchased
 
   def initialize(player_name)
     @player = Player.new(player_name)
     @rooms = []
+    @budget = 300
+    @purchased = []
   end
 
   def add_room(reference, name, description, connections)
     @rooms << Room.new(reference, name, description, connections)
   end
 
-  def start(location)
-    @player.location = location
+  def start
+    @player.location = :center
     show_current_description
   end
 
@@ -31,28 +33,11 @@ class Dungeon
     puts "You go " + direction.to_s
     @player.location = find_room_in_direction(direction)
     show_current_description
-  end
-
-  class Player
-    attr_accessor :name, :location
-
-    def initialize(player_name)
-      @name = player_name
-    end
-  end
-
-  class Room
-    attr_accessor :reference, :name, :description, :connections
-
-    def initialize(reference, name, description, connections)
-      @reference = reference
-      @name = name
-      @description = description
-      @connections = connections
-    end
-
-    def full_description
-      "\n#{@name}: You are in #{@description}.\n\n"
+    if @player.location == :center || @player.location == :exit
+      puts "Your current balance: $#{@budget}"
+      puts "Purchased items: #{@purchased}\n\n"
+    else
+      shop
     end
   end
 
@@ -79,30 +64,109 @@ class Dungeon
     end
   end
 
-  def won?
+  def shop
+    items = [
+    { "cotton t-shirt" => 40 },
+    { "polo shirt" => 50 },
+    { "denim shirt" => 70 },
+    { "oxford shirt" => 70 },
+    { "linen shirt" => 60 },
+    { "chino shorts" => 50 },
+    { "selvedge jeans" => 100 },
+    { "down jacket" => 150 },
+    { "sweat hoodie" => 70 },
+    { "heavy gauge cardigan" => 90 },
+    { "cashmere sweater" => 160 },
+    { "low-cut socks" => 20 },
+    { "leather belt" => 50 }
+    ]
+    selected_item = items[rand(12)]
+    item = selected_item.keys.first
+    price = selected_item.values.first
+    puts "You purchased #{item} at $#{price}"
+    @budget = (@budget - price)
+    if @budget < 0
+      puts "Your current balance: -$#{@budget.abs}"
+    else
+      puts "Your current balance: $#{@budget}"
+    end
+    @purchased << item
+    puts "Purchased items: #{@purchased}\n\n"
+  end
+
+  def exit?
     @player.location == :exit
+  end
+
+  def over_budget?
+    @budget < 0
+  end
+
+  class Player
+    attr_accessor :name, :location
+
+    def initialize(player_name)
+      @name = player_name
+    end
+  end
+
+  class Room
+    attr_accessor :reference, :name, :description, :connections
+
+    def initialize(reference, name, description, connections)
+      @reference = reference
+      @name = name
+      @description = description
+      @connections = connections
+    end
+
+    def full_description
+      "\n#{@name}: You are in #{@description}.\n\n"
+    end
   end
 
 end
 
-print "What's your name? : "
-user_name = gets.chomp
-puts "Welcome to the shopping mall dungeon, #{user_name}!"
-puts "Your goal is to find an exit."
-mall_dungeon = Dungeon.new(user_name)
+if __FILE__ == $PROGRAM_NAME
+  print "What's your name? : "
+  user_name = gets.chomp
+  puts "Welcome to the shopping mall dungeon, #{user_name}!"
+  puts "Your goal is to find an exit without spending too much on shopping."
+  puts "Your budget is $500. Please don't go over the budget."
+  mall_dungeon = Dungeon.new(user_name)
 
-mall_dungeon.add_room(:center, "Center", "the center of shopping mall dungeon", { :north => :coach, :east => :zara, :south => :nike, :west => :jcrew })
-mall_dungeon.add_room(:uniqlo, "Uniqlo", "the basic, low price, casual wear shop", { :west => :coach, :south => :zara, :east => :exit })
-mall_dungeon.add_room(:zara, "Zara", "the trend, mid price, fashion wear shop", { :north => :uniqlo, :west => :center, :south => :theory })
-mall_dungeon.add_room(:theory, "Theory", "the basic, high price, minimal wear shop", {:north => :zara, :west => :nike })
-mall_dungeon.add_room(:nike, "NIKE", "the active, mid price, sports wear shop", { :north => :center, :east => :theory, :west => :gap })
-mall_dungeon.add_room(:gap, "GAP", "the basic, mid price, family wear shop", { :north => :jcrew, :east => :nike })
-mall_dungeon.add_room(:jcrew, "J.crew", "the butique, mid price, casual wear shop", { :north => :forever21, :east => :center, :south => :gap })
-mall_dungeon.add_room(:forever21, "Forever 21", "the young, low price, fashion wear shop", { :east => :coach, :south => :jcrew })
-mall_dungeon.add_room(:coach, "Coach", "the luxuary, high price, leather wear shop", { :east => :uniqlo, :south => :center, :west => :forever21 })
-mall_dungeon.add_room(:exit, "EXIT", "a way out. Congrats! You managed to exit", {} )
+  # loading the shopping mall dungeon.
+  mall_dungeon.add_room(:center, "Center", "the center of shopping mall dungeon",
+   { :north => :coach, :east => :zara, :south => :nike, :west => :jcrew })
+  mall_dungeon.add_room(:uniqlo, "Uniqlo", "the basic, low price, casual wear shop",
+   { :west => :coach, :south => :zara, :east => :exit })
+  mall_dungeon.add_room(:zara, "Zara", "the trend, mid price, fashion wear shop",
+   { :north => :uniqlo, :west => :center, :south => :theory })
+  mall_dungeon.add_room(:theory, "Theory", "the basic, high price, minimal wear shop",
+   {:north => :zara, :west => :nike })
+  mall_dungeon.add_room(:nike, "NIKE", "the active, mid price, sports wear shop",
+   { :north => :center, :east => :theory, :west => :gap })
+  mall_dungeon.add_room(:gap, "GAP", "the basic, mid price, family wear shop",
+   { :north => :jcrew, :east => :nike })
+  mall_dungeon.add_room(:jcrew, "J.crew", "the butique, mid price, casual wear shop",
+   { :north => :forever21, :east => :center, :south => :gap })
+  mall_dungeon.add_room(:forever21, "Forever 21", "the young, low price, fashion wear shop",
+   { :east => :coach, :south => :jcrew })
+  mall_dungeon.add_room(:coach, "Coach", "the luxuary, high price, leather wear shop",
+   { :east => :uniqlo, :south => :center, :west => :forever21 })
+  mall_dungeon.add_room(:exit, "EXIT", "a way out", {} )
 
-mall_dungeon.start(:center)
-until mall_dungeon.won?
-  mall_dungeon.play
+  mall_dungeon.start
+  condition = false
+  while condition == false
+    mall_dungeon.play
+    if mall_dungeon.over_budget?
+      puts "Game over! You went over budget..."
+      condition = true
+    elsif mall_dungeon.exit?
+      puts "Congrats! You managed to exit!"
+      puts "You have #{mall_dungeon.purchased} and $#{mall_dungeon.budget} left."
+      condition = true
+    end
+  end
 end
