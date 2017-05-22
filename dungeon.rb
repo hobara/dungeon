@@ -1,5 +1,8 @@
 class Dungeon
-  attr_accessor :player, :budget, :purchased
+  load 'player.rb'
+  load 'room.rb'
+  attr_accessor :player
+  attr_reader :budget, :purchased
 
   def initialize(player_name)
     @player = Player.new(player_name)
@@ -34,8 +37,8 @@ class Dungeon
     @player.location = find_room_in_direction(direction)
     show_current_description
     if @player.location == :center || @player.location == :exit
-      puts "Your current balance: $#{@budget}"
-      puts "Purchased items: #{@purchased}\n\n"
+      puts "=> Your current balance: $#{@budget}"
+      puts "=> Purchased items: #{@purchased.join(", ")}\n\n"
     else
       shop
     end
@@ -86,12 +89,12 @@ class Dungeon
     puts "You purchased #{item} at $#{price}"
     @budget = (@budget - price)
     if @budget < 0
-      puts "Your current balance: -$#{@budget.abs}"
+      puts "=> Your current balance: -$#{@budget.abs}"
     else
-      puts "Your current balance: $#{@budget}"
+      puts "=> Your current balance: $#{@budget}"
     end
     @purchased << item
-    puts "Purchased items: #{@purchased}\n\n"
+    puts "=> Purchased items: #{@purchased.join(", ")}\n\n"
   end
 
   def exit?
@@ -102,39 +105,15 @@ class Dungeon
     @budget < 0
   end
 
-  class Player
-    attr_accessor :name, :location
-
-    def initialize(player_name)
-      @name = player_name
-    end
-  end
-
-  class Room
-    attr_accessor :reference, :name, :description, :connections
-
-    def initialize(reference, name, description, connections)
-      @reference = reference
-      @name = name
-      @description = description
-      @connections = connections
-    end
-
-    def full_description
-      "\n#{@name}: You are in #{@description}.\n\n"
-    end
-  end
-
 end
 
 if __FILE__ == $PROGRAM_NAME
   print "What's your name? : "
   user_name = gets.chomp
-  puts "Welcome to the shopping mall dungeon, #{user_name}!"
+  puts "Welcome to the shopping mall dungeon, #{user_name.capitalize}!"
   puts "Your goal is to find an exit without spending too much on shopping."
   puts "Your budget is $300. Please don't go over the budget."
   mall_dungeon = Dungeon.new(user_name)
-
   # loading the shopping mall dungeon.
   mall_dungeon.add_room(:center, "Center", "the center of shopping mall dungeon",
    { :north => :coach, :east => :zara, :south => :nike, :west => :jcrew })
@@ -165,7 +144,7 @@ if __FILE__ == $PROGRAM_NAME
       condition = true
     elsif mall_dungeon.exit?
       puts "Congrats! You managed to exit!"
-      puts "You have #{mall_dungeon.purchased} and $#{mall_dungeon.budget} left."
+      puts "You shopped #{mall_dungeon.purchased.join(", ")} and $#{mall_dungeon.budget} left."
       condition = true
     end
   end
