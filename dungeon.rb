@@ -132,7 +132,7 @@ if __FILE__ == $PROGRAM_NAME
   user_name = gets.chomp
   puts "Welcome to the shopping mall dungeon, #{user_name}!"
   puts "Your goal is to find an exit without spending too much on shopping."
-  puts "Your budget is $500. Please don't go over the budget."
+  puts "Your budget is $300. Please don't go over the budget."
   mall_dungeon = Dungeon.new(user_name)
 
   # loading the shopping mall dungeon.
